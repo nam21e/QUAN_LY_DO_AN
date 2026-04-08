@@ -1,18 +1,77 @@
-const mongoose = require("mongoose");
+  const supabase = require('../config/supabaseClient');
 
-const commentReactionSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    default: "like"
+const TABLE = 'comment_reactions';
+
+const CommentReaction = {
+  table: TABLE,
+
+  async findAll() {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
   },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+
+  async findById(id) {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
   },
-  commentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Comment"
+
+  async findByCommentId(commentId) {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .eq('comment_id', commentId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async findOne(userId, commentId, type = 'like') {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('comment_id', commentId)
+      .eq('type', type)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async create(payload) {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .insert([payload])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async delete(id) {
+    const { error } = await supabase.from(TABLE).delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+
+  async deleteByUserAndComment(userId, commentId, type = 'like') {
+    const { error } = await supabase
+      .from(TABLE)
+      .delete()
+      .eq('user_id', userId)
+      .eq('comment_id', commentId)
+      .eq('type', type);
+    if (error) throw error;
+    return true;
   }
-}, { timestamps: true });
+};
 
-module.exports = mongoose.model("CommentReaction", commentReactionSchema);
+module.exports = CommentReaction;

@@ -27,3 +27,9 @@ Back-end/node_modules
 .env
 Back-end/.env
 uploads
+
+node_modules
+.env
+.vscode
+dist
+build
